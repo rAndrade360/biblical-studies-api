@@ -41,12 +41,12 @@ func main() {
 	}
 
 	if os.Args[1] == "up" {
-		err = m.Up() // or m.Step(2) if you want to explicitly set the number of migrations to run
+		err = m.Up()
 		if err != nil {
 			log.Fatalf("Err to migrate: %s", err.Error())
 		}
 	} else if os.Args[1] == "down" {
-		err = m.Down() // or m.Step(2) if you want to explicitly set the number of migrations to run
+		err = m.Down()
 		if err != nil {
 			log.Fatalf("Err to migrate: %s", err.Error())
 		}

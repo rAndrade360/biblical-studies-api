@@ -15,6 +15,7 @@ type service struct {
 
 type QuestionGroupService interface {
 	Create(qg *models.QuestionGroup) error
+	GetById(id string) (*models.QuestionGroup, error)
 }
 
 func NewQuestionGroupService(repo repositories.QuestionGroupRepository) QuestionGroupService {
@@ -30,4 +31,13 @@ func (s *service) Create(qg *models.QuestionGroup) error {
 	qg.UpdatedAt = time.Now()
 
 	return s.repo.Create(qg)
+}
+
+func (s *service) GetById(id string) (*models.QuestionGroup, error) {
+	_, err := uuid.Parse(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.repo.GetById(id)
 }

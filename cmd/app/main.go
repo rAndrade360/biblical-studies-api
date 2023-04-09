@@ -24,5 +24,6 @@ func main() {
 	app := fiber.New()
 
 	app.Post("/questiongroup", qgctrl.Create)
+	app.Get("/questiongroup/:id", qgctrl.GetById)
 	app.Listen(":8080")
 }
