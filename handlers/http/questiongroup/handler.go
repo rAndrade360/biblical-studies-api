@@ -16,6 +16,7 @@ type controller struct {
 
 type QuestionGroupController interface {
 	Create(ctx *fiber.Ctx) error
+	List(ctx *fiber.Ctx) error
 	GetById(ctx *fiber.Ctx) error
 }
 
@@ -66,4 +67,23 @@ func (c *controller) GetById(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.Status(200).JSON(dto.QuestionGroupHttpCreateResponse(*qg))
+}
+
+func (c *controller) List(ctx *fiber.Ctx) error {
+	ctx.Set("Content-Type", "application/json")
+	c.log = c.log.SetRequestID(uuid.NewString())
+
+	qgs, err := c.service.List()
+	if err != nil {
+		c.log.Error(err.Error())
+		return ctx.Status(500).Send([]byte(`{"message": "internal server error"}`))
+	}
+
+	var res []dto.QuestionGroupHttpCreateResponse
+
+	for i := range qgs {
+		res = append(res, dto.QuestionGroupHttpCreateResponse(qgs[i]))
+	}
+
+	return ctx.Status(200).JSON(res)
 }

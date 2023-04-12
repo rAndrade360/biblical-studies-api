@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 	qgcontroller "github.com/rAndrade360/biblical-studies-api/handlers/http/questiongroup"
@@ -11,7 +12,15 @@ import (
 	qgservice "github.com/rAndrade360/biblical-studies-api/services/questiongroup"
 )
 
+var (
+	PORT = os.Getenv("PORT")
+)
+
 func main() {
+	if len(PORT) == 0 {
+		PORT = "8080"
+	}
+
 	db, err := sqlite.New()
 	if err != nil {
 		log.Fatal("Err to connect db: ", err.Error())
@@ -27,6 +36,7 @@ func main() {
 	app := fiber.New()
 
 	app.Post("/questiongroup", qgctrl.Create)
+	app.Get("/questiongroup", qgctrl.List)
 	app.Get("/questiongroup/:id", qgctrl.GetById)
-	app.Listen(":8080")
+	app.Listen(":" + PORT)
 }

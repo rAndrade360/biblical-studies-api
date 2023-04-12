@@ -19,6 +19,7 @@ type service struct {
 type QuestionGroupService interface {
 	Create(qg *models.QuestionGroup) error
 	GetById(id string) (*models.QuestionGroup, error)
+	List() ([]models.QuestionGroup, error)
 }
 
 func NewQuestionGroupService(repo repositories.QuestionGroupRepository, logger logger.Logger) QuestionGroupService {
@@ -42,8 +43,17 @@ func (s *service) Create(qg *models.QuestionGroup) error {
 func (s *service) GetById(id string) (*models.QuestionGroup, error) {
 	_, err := uuid.Parse(id)
 	if err != nil {
+		s.log.Errorf("Error to get questionGroup: %s", err.Error())
 		return nil, errors.INVALIDINPUT
 	}
 
+	s.log.Infof("Getting QuestionGroup by id: %s", id)
+
 	return s.repo.GetById(id)
+}
+
+func (s *service) List() ([]models.QuestionGroup, error) {
+	s.log.Infof("List QuestionGroups")
+
+	return s.repo.List()
 }

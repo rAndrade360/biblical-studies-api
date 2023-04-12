@@ -13,6 +13,7 @@ type repo struct {
 type QuestionGroupRepository interface {
 	Create(qg *models.QuestionGroup) error
 	GetById(id string) (*models.QuestionGroup, error)
+	List() ([]models.QuestionGroup, error)
 }
 
 func NewQuestionGroupRepository(db *sql.DB) QuestionGroupRepository {
@@ -50,4 +51,34 @@ func (r *repo) GetById(id string) (*models.QuestionGroup, error) {
 	}
 
 	return &qg, nil
+}
+
+func (r *repo) List() ([]models.QuestionGroup, error) {
+	rows, err := r.db.Query("SELECT qg.id, qg.name, qg.description, qg.image_url, qg.prev_qg_id, qg.created_at, qg.updated_at FROM question_groups as qg;")
+	if err != nil {
+		return nil, err
+	}
+
+	var questionGroups []models.QuestionGroup
+	defer rows.Close()
+	for rows.Next() {
+		var qg models.QuestionGroup
+
+		err := rows.Scan(
+			&qg.ID,
+			&qg.Name,
+			&qg.Description,
+			&qg.ImageUrl,
+			&qg.PrevQGID,
+			&qg.CreatedAt,
+			&qg.UpdatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		questionGroups = append(questionGroups, qg)
+	}
+
+	return questionGroups, nil
 }
