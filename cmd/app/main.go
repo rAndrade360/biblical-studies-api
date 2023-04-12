@@ -7,6 +7,7 @@ import (
 	qgcontroller "github.com/rAndrade360/biblical-studies-api/handlers/http/questiongroup"
 	"github.com/rAndrade360/biblical-studies-api/internal/infra/database/sqlite"
 	qgrepository "github.com/rAndrade360/biblical-studies-api/internal/repositories/questiongroup"
+	"github.com/rAndrade360/biblical-studies-api/pkg/logger"
 	qgservice "github.com/rAndrade360/biblical-studies-api/services/questiongroup"
 )
 
@@ -16,10 +17,12 @@ func main() {
 		log.Fatal("Err to connect db: ", err.Error())
 	}
 
-	qgrepo := qgrepository.NewQuestionGroupRepository(db)
-	qgsvc := qgservice.NewQuestionGroupService(qgrepo)
+	logger := logger.NewLogger(logger.DEBUG)
 
-	qgctrl := qgcontroller.NewQuestionGroupController(qgsvc)
+	qgrepo := qgrepository.NewQuestionGroupRepository(db)
+	qgsvc := qgservice.NewQuestionGroupService(qgrepo, logger)
+
+	qgctrl := qgcontroller.NewQuestionGroupController(qgsvc, logger)
 
 	app := fiber.New()
 

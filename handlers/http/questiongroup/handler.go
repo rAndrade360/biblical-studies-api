@@ -1,16 +1,17 @@
 package questiongroup
 
 import (
-	"log"
-
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	dto "github.com/rAndrade360/biblical-studies-api/dto/questiongroup"
 	"github.com/rAndrade360/biblical-studies-api/internal/models"
+	"github.com/rAndrade360/biblical-studies-api/pkg/logger"
 	"github.com/rAndrade360/biblical-studies-api/services/questiongroup"
 )
 
 type controller struct {
 	service questiongroup.QuestionGroupService
+	log     logger.Logger
 }
 
 type QuestionGroupController interface {
@@ -18,19 +19,21 @@ type QuestionGroupController interface {
 	GetById(ctx *fiber.Ctx) error
 }
 
-func NewQuestionGroupController(svc questiongroup.QuestionGroupService) QuestionGroupController {
+func NewQuestionGroupController(svc questiongroup.QuestionGroupService, logger logger.Logger) QuestionGroupController {
 	return &controller{
 		service: svc,
+		log:     logger,
 	}
 }
 
 func (c *controller) Create(ctx *fiber.Ctx) error {
 	ctx.Set("Content-Type", "application/json")
+	c.log = c.log.SetRequestID(uuid.NewString())
 
 	var in dto.QuestionGroupHttpCreate
 	err := ctx.BodyParser(&in)
 	if err != nil {
-		log.Println(err.Error())
+		c.log.Error(err.Error())
 		return err
 	}
 
@@ -43,7 +46,7 @@ func (c *controller) Create(ctx *fiber.Ctx) error {
 
 	err = c.service.Create(&qg)
 	if err != nil {
-		log.Println(err.Error())
+		c.log.Error(err.Error())
 		return ctx.Status(500).Send([]byte(`{"message": "internal server error"}`))
 	}
 
@@ -52,12 +55,13 @@ func (c *controller) Create(ctx *fiber.Ctx) error {
 
 func (c *controller) GetById(ctx *fiber.Ctx) error {
 	ctx.Set("Content-Type", "application/json")
+	c.log = c.log.SetRequestID(uuid.NewString())
 
 	id := ctx.Params("id")
 
 	qg, err := c.service.GetById(id)
 	if err != nil {
-		log.Println(err.Error())
+		c.log.Error(err.Error())
 		return ctx.Status(500).Send([]byte(`{"message": "internal server error"}`))
 	}
 
