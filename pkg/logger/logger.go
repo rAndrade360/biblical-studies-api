@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"context"
 	"os"
 
 	"github.com/rs/zerolog"
@@ -21,6 +22,12 @@ type logger struct {
 type LOG_LEVEL int8
 
 const (
+	LogKey LoggerKey = "LOGGER"
+)
+
+type LoggerKey string
+
+const (
 	TRACE LOG_LEVEL = iota - 1
 	DEBUG
 	INFO
@@ -29,6 +36,15 @@ const (
 	FATAL
 	PANIC
 )
+
+func GetLoggerCtx(ctx context.Context) Logger {
+	logger, ok := ctx.Value(LogKey).(logger)
+	if !ok {
+		return nil
+	}
+
+	return &logger
+}
 
 func NewLogger(level LOG_LEVEL) Logger {
 	log := zerolog.New(os.Stdout).Level(zerolog.Level(level))

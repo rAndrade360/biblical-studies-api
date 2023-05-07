@@ -1,6 +1,7 @@
 package questiongroup
 
 import (
+	"context"
 	"encoding/json"
 	"time"
 
@@ -13,25 +14,25 @@ import (
 
 type service struct {
 	repo repositories.QuestionGroupRepository
-	log  logger.Logger
 }
 
 type QuestionGroupService interface {
-	Create(qg *models.QuestionGroup) error
-	GetById(id string) (*models.QuestionGroup, error)
-	List() ([]models.QuestionGroup, error)
+	Create(ctx context.Context, qg *models.QuestionGroup) error
+	GetById(ctx context.Context, id string) (*models.QuestionGroup, error)
+	List(ctx context.Context) ([]models.QuestionGroup, error)
 }
 
-func NewQuestionGroupService(repo repositories.QuestionGroupRepository, logger logger.Logger) QuestionGroupService {
+func NewQuestionGroupService(repo repositories.QuestionGroupRepository) QuestionGroupService {
 	return &service{
 		repo: repo,
-		log:  logger,
 	}
 }
 
-func (s *service) Create(qg *models.QuestionGroup) error {
+func (s *service) Create(ctx context.Context, qg *models.QuestionGroup) error {
+	log := logger.GetLoggerCtx(ctx)
+
 	jb, _ := json.Marshal(qg)
-	s.log.Infof("Creating QuestionGroup with the data: %s", string(jb))
+	log.Infof("Creating QuestionGroup with the data: %s", string(jb))
 
 	qg.ID = uuid.New().String()
 	qg.CreatedAt = time.Now()
@@ -40,20 +41,24 @@ func (s *service) Create(qg *models.QuestionGroup) error {
 	return s.repo.Create(qg)
 }
 
-func (s *service) GetById(id string) (*models.QuestionGroup, error) {
+func (s *service) GetById(ctx context.Context, id string) (*models.QuestionGroup, error) {
+	log := logger.GetLoggerCtx(ctx)
+
 	_, err := uuid.Parse(id)
 	if err != nil {
-		s.log.Errorf("Error to get questionGroup: %s", err.Error())
+		log.Errorf("Error to get questionGroup: %s", err.Error())
 		return nil, errors.INVALIDINPUT
 	}
 
-	s.log.Infof("Getting QuestionGroup by id: %s", id)
+	log.Infof("Getting QuestionGroup by id: %s", id)
 
 	return s.repo.GetById(id)
 }
 
-func (s *service) List() ([]models.QuestionGroup, error) {
-	s.log.Infof("List QuestionGroups")
+func (s *service) List(ctx context.Context) ([]models.QuestionGroup, error) {
+	log := logger.GetLoggerCtx(ctx)
+
+	log.Infof("List QuestionGroups")
 
 	return s.repo.List()
 }
