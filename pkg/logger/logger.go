@@ -38,12 +38,12 @@ const (
 )
 
 func GetLoggerCtx(ctx context.Context) Logger {
-	logger, ok := ctx.Value(LogKey).(logger)
+	logger, ok := ctx.Value(LogKey).(*logger)
 	if !ok {
 		return nil
 	}
 
-	return &logger
+	return logger
 }
 
 func NewLogger(level LOG_LEVEL) Logger {

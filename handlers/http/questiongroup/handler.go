@@ -43,7 +43,7 @@ func (c *controller) Create(ctx *fiber.Ctx) error {
 		Name:        in.Name,
 		Description: in.Description,
 		ImageUrl:    in.ImageUrl,
-		PrevQGID:    in.PrevQGID,
+		SortNumber:  in.SortNumber,
 	}
 
 	err = c.service.Create(contxt, &qg)
