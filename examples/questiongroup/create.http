@@ -1,0 +1,9 @@
+POST http://0.0.0.0:8080/questiongroup HTTP/1.1
+content-type: application/json
+
+{
+    "name": "A Queda",
+    "description": "Como todo o mal iniciou",
+    "imageUrl": "",
+    "sortNumber": 1
+}

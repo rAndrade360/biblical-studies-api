@@ -8,10 +8,8 @@ import (
 )
 
 type Logger interface {
-	Infof(msg string, args ...interface{})
-	Info(msg string)
-	Errorf(msg string, args ...interface{})
-	Error(msg string)
+	Info(msg string, data ...interface{})
+	Error(msg string, data ...interface{})
 	SetRequestID(requestId string) Logger
 }
 
@@ -60,18 +58,18 @@ func (l *logger) SetRequestID(requestId string) Logger {
 	}
 }
 
-func (l *logger) Errorf(msg string, args ...interface{}) {
-	l.log.Error().Msgf(msg, args...)
+func (l *logger) Error(msg string, data ...interface{}) {
+	lg := l.log.Error()
+	if len(data) > 0 {
+		lg.Any("data", data)
+	}
+	lg.Msg(msg)
 }
 
-func (l *logger) Error(msg string) {
-	l.log.Error().Msg(msg)
-}
-
-func (l *logger) Infof(msg string, args ...interface{}) {
-	l.log.Info().Msgf(msg, args...)
-}
-
-func (l *logger) Info(msg string) {
-	l.log.Info().Msgf(msg)
+func (l *logger) Info(msg string, data ...interface{}) {
+	lg := l.log.Info()
+	if len(data) > 0 {
+		lg.Any("data", data)
+	}
+	lg.Msg(msg)
 }

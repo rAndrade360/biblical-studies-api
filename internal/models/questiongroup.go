@@ -7,7 +7,7 @@ type QuestionGroup struct {
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
 	ImageUrl    string    `json:"imageUrl"`
-	SortNumber  string    `json:"sortNumber"`
+	SortNumber  int       `json:"sortNumber"`
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdatedAt   time.Time `json:"updatedAt"`
 }

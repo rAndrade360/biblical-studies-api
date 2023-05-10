@@ -2,7 +2,6 @@ package questiongroup
 
 import (
 	"context"
-	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -31,8 +30,7 @@ func NewQuestionGroupService(repo repositories.QuestionGroupRepository) Question
 func (s *service) Create(ctx context.Context, qg *models.QuestionGroup) error {
 	log := logger.GetLoggerCtx(ctx)
 
-	jb, _ := json.Marshal(qg)
-	log.Infof("Creating QuestionGroup with the data: %s", string(jb))
+	log.Info("Creating QuestionGroup", qg)
 
 	qg.ID = uuid.New().String()
 	qg.CreatedAt = time.Now()
@@ -46,11 +44,11 @@ func (s *service) GetById(ctx context.Context, id string) (*models.QuestionGroup
 
 	_, err := uuid.Parse(id)
 	if err != nil {
-		log.Errorf("Error to get questionGroup: %s", err.Error())
+		log.Error("Error to get questionGroup", err.Error())
 		return nil, errors.INVALIDINPUT
 	}
 
-	log.Infof("Getting QuestionGroup by id: %s", id)
+	log.Info("Getting QuestionGroup by id", id)
 
 	return s.repo.GetById(id)
 }
@@ -58,7 +56,7 @@ func (s *service) GetById(ctx context.Context, id string) (*models.QuestionGroup
 func (s *service) List(ctx context.Context) ([]models.QuestionGroup, error) {
 	log := logger.GetLoggerCtx(ctx)
 
-	log.Infof("List QuestionGroups")
+	log.Info("List QuestionGroups")
 
 	return s.repo.List()
 }

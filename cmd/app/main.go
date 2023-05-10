@@ -5,11 +5,14 @@ import (
 	"os"
 
 	"github.com/gofiber/fiber/v2"
+	qcontroller "github.com/rAndrade360/biblical-studies-api/handlers/http/question"
 	qgcontroller "github.com/rAndrade360/biblical-studies-api/handlers/http/questiongroup"
 	"github.com/rAndrade360/biblical-studies-api/internal/infra/database/sqlite"
+	qrepository "github.com/rAndrade360/biblical-studies-api/internal/repositories/question"
 	qgrepository "github.com/rAndrade360/biblical-studies-api/internal/repositories/questiongroup"
 	"github.com/rAndrade360/biblical-studies-api/pkg/logger"
 	mwlogger "github.com/rAndrade360/biblical-studies-api/pkg/middlewares/logger"
+	qservice "github.com/rAndrade360/biblical-studies-api/services/question"
 	qgservice "github.com/rAndrade360/biblical-studies-api/services/questiongroup"
 )
 
@@ -27,17 +30,27 @@ func main() {
 		log.Fatal("Err to connect db: ", err.Error())
 	}
 
-	//logger := logger.NewLogger(logger.DEBUG)
-
-	qgrepo := qgrepository.NewQuestionGroupRepository(db)
 	app := fiber.New()
 	app.Use(mwlogger.Logger(logger.DEBUG))
+
+	qgrepo := qgrepository.NewQuestionGroupRepository(db)
+	qrepo := qrepository.NewQuestionRepository(db)
+
 	qgsvc := qgservice.NewQuestionGroupService(qgrepo)
+	qsvc := qservice.NewQuestionService(qrepo, qgsvc)
 
 	qgctrl := qgcontroller.NewQuestionGroupController(qgsvc)
+	qctrl := qcontroller.NewQuestionController(qsvc)
 
-	app.Post("/questiongroup", qgctrl.Create)
-	app.Get("/questiongroup", qgctrl.List)
-	app.Get("/questiongroup/:id", qgctrl.GetById)
-	app.Listen(":" + PORT)
+	qgrouter := app.Group("/questiongroup")
+	qgrouter.Post("/", qgctrl.Create)
+	qgrouter.Get("/", qgctrl.List)
+	qgrouter.Get("/:id", qgctrl.GetById)
+
+	qrouter := app.Group("/question")
+	qrouter.Post("/", qctrl.Create)
+	qrouter.Get("/", qctrl.List)
+	qrouter.Get("/:id", qctrl.GetById)
+
+	log.Fatal(app.Listen(":" + PORT))
 }

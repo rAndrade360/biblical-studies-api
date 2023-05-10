@@ -1,26 +1,26 @@
-package questiongroup
+package question
 
 import (
 	"context"
 
 	"github.com/gofiber/fiber/v2"
-	dto "github.com/rAndrade360/biblical-studies-api/dto/questiongroup"
+	dto "github.com/rAndrade360/biblical-studies-api/dto/question"
 	"github.com/rAndrade360/biblical-studies-api/internal/models"
 	"github.com/rAndrade360/biblical-studies-api/pkg/logger"
-	"github.com/rAndrade360/biblical-studies-api/services/questiongroup"
+	"github.com/rAndrade360/biblical-studies-api/services/question"
 )
 
 type controller struct {
-	service questiongroup.QuestionGroupService
+	service question.QuestionService
 }
 
-type QuestionGroupController interface {
+type QuestionController interface {
 	Create(ctx *fiber.Ctx) error
 	List(ctx *fiber.Ctx) error
 	GetById(ctx *fiber.Ctx) error
 }
 
-func NewQuestionGroupController(svc questiongroup.QuestionGroupService) QuestionGroupController {
+func NewQuestionController(svc question.QuestionService) QuestionController {
 	return &controller{
 		service: svc,
 	}
@@ -31,19 +31,14 @@ func (c *controller) Create(ctx *fiber.Ctx) error {
 	log := ctx.Locals(logger.LogKey).(logger.Logger)
 	contxt := context.WithValue(context.Background(), logger.LogKey, log)
 
-	var in dto.QuestionGroupHttpCreate
+	var in dto.QuestionHttpCreate
 	err := ctx.BodyParser(&in)
 	if err != nil {
 		log.Error(err.Error())
 		return err
 	}
 
-	qg := models.QuestionGroup{
-		Name:        in.Name,
-		Description: in.Description,
-		ImageUrl:    in.ImageUrl,
-		SortNumber:  in.SortNumber,
-	}
+	qg := models.NewQuestion(in.QuestionGroupID, in.Title, in.Description, in.BibleText, in.ImageUrl, in.SortNumber)
 
 	err = c.service.Create(contxt, &qg)
 	if err != nil {
@@ -51,7 +46,7 @@ func (c *controller) Create(ctx *fiber.Ctx) error {
 		return ctx.Status(500).Send([]byte(`{"message": "internal server error"}`))
 	}
 
-	res := dto.QuestionGroupHttpCreateResponse(qg)
+	res := dto.QuestionHttpCreateResponse(qg)
 
 	log.Info("response", res)
 
@@ -71,7 +66,7 @@ func (c *controller) GetById(ctx *fiber.Ctx) error {
 		return ctx.Status(500).Send([]byte(`{"message": "internal server error"}`))
 	}
 
-	res := dto.QuestionGroupHttpCreateResponse(*qg)
+	res := dto.QuestionHttpCreateResponse(*qg)
 
 	log.Info("response", res)
 
@@ -89,10 +84,10 @@ func (c *controller) List(ctx *fiber.Ctx) error {
 		return ctx.Status(500).Send([]byte(`{"message": "internal server error"}`))
 	}
 
-	var res []dto.QuestionGroupHttpCreateResponse
+	var res []dto.QuestionHttpCreateResponse
 
 	for i := range qgs {
-		res = append(res, dto.QuestionGroupHttpCreateResponse(qgs[i]))
+		res = append(res, dto.QuestionHttpCreateResponse(qgs[i]))
 	}
 
 	log.Info("response", res)

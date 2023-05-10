@@ -6,7 +6,7 @@ type QuestionGroupHttpCreate struct {
 	Name        string `json:"name,omitempty"`
 	Description string `json:"description,omitempty"`
 	ImageUrl    string `json:"imageUrl,omitempty"`
-	SortNumber  string `json:"sortNumber,omitempty"`
+	SortNumber  int    `json:"sortNumber,omitempty"`
 }
 
 type QuestionGroupHttpCreateResponse struct {
@@ -14,7 +14,7 @@ type QuestionGroupHttpCreateResponse struct {
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
 	ImageUrl    string    `json:"imageUrl"`
-	SortNumber  string    `json:"sortNumber"`
+	SortNumber  int       `json:"sortNumber"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }

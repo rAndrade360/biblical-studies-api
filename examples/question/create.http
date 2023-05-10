@@ -1,0 +1,12 @@
+# Create an question
+POST http://0.0.0.0:8080/question HTTP/1.1
+content-type: application/json
+
+{
+    "questionGroupId": "43f5d4a8-7934-45a1-95ff-fcb82bb67067",
+    "title": "Como iniciou o pecado?",
+    "description": "O pecado teve inicio a partir da rebeldia de um anjo.",
+    "bibleText": "",
+    "imageUrl": "",
+    "sortNumber": 1
+}
