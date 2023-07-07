@@ -7,9 +7,11 @@ import (
 )
 
 func Logger(level logger.LOG_LEVEL) func(*fiber.Ctx) error {
-	l := logger.NewLogger(level).SetRequestID(uuid.NewString())
+	reqID := uuid.NewString()
+	l := logger.NewLogger(level).SetRequestID(reqID)
 	return func(c *fiber.Ctx) error {
 		c.Locals(logger.LogKey, l)
+		c.Set("Requestid", reqID)
 		return c.Next()
 	}
 }

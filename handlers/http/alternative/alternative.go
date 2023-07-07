@@ -3,9 +3,12 @@ package alternative
 import (
 	"context"
 
+	stderr "errors"
+
 	"github.com/gofiber/fiber/v2"
 	dto "github.com/rAndrade360/biblical-studies-api/dto/alternative"
 	"github.com/rAndrade360/biblical-studies-api/internal/models"
+	errors "github.com/rAndrade360/biblical-studies-api/pkg/error"
 	"github.com/rAndrade360/biblical-studies-api/pkg/logger"
 	"github.com/rAndrade360/biblical-studies-api/services/alternative"
 )
@@ -46,7 +49,10 @@ func (c *controller) Create(ctx *fiber.Ctx) error {
 	err = c.service.Create(contxt, &a)
 	if err != nil {
 		log.Error(err.Error())
-		return ctx.Status(500).Send([]byte(`{"message": "internal server error"}`))
+		if stderr.Is(err, errors.INVALIDINPUT) {
+			return ctx.Status(400).Send([]byte(errors.BAD_REQUEST_HTTP.Error()))
+		}
+		return ctx.Status(500).Send([]byte(errors.ITERNAL_SERVER_ERROR_HTTP.Error()))
 	}
 
 	res := dto.AlternativeHttpResponse{
@@ -70,7 +76,10 @@ func (c *controller) GetById(ctx *fiber.Ctx) error {
 	a, err := c.service.GetById(contxt, id)
 	if err != nil {
 		log.Error(err.Error())
-		return ctx.Status(500).Send([]byte(`{"message": "internal server error"}`))
+		if stderr.Is(err, errors.INVALIDINPUT) {
+			return ctx.Status(400).Send([]byte(errors.BAD_REQUEST_HTTP.Error()))
+		}
+		return ctx.Status(500).Send([]byte(errors.ITERNAL_SERVER_ERROR_HTTP.Error()))
 	}
 
 	res := dto.AlternativeHttpResponse{
@@ -94,7 +103,10 @@ func (c *controller) GetByQuestionId(ctx *fiber.Ctx) error {
 	as, err := c.service.GetByQuestionId(contxt, id)
 	if err != nil {
 		log.Error(err.Error())
-		return ctx.Status(500).Send([]byte(`{"message": "internal server error"}`))
+		if stderr.Is(err, errors.INVALIDINPUT) {
+			return ctx.Status(400).Send([]byte(errors.BAD_REQUEST_HTTP.Error()))
+		}
+		return ctx.Status(500).Send([]byte(errors.ITERNAL_SERVER_ERROR_HTTP.Error()))
 	}
 
 	var res []dto.AlternativeHttpResponse
@@ -120,7 +132,10 @@ func (c *controller) List(ctx *fiber.Ctx) error {
 	as, err := c.service.List(contxt)
 	if err != nil {
 		log.Error(err.Error())
-		return ctx.Status(500).Send([]byte(`{"message": "internal server error"}`))
+		if stderr.Is(err, errors.INVALIDINPUT) {
+			return ctx.Status(400).Send([]byte(errors.BAD_REQUEST_HTTP.Error()))
+		}
+		return ctx.Status(500).Send([]byte(errors.ITERNAL_SERVER_ERROR_HTTP.Error()))
 	}
 
 	var res []dto.AlternativeHttpResponse
