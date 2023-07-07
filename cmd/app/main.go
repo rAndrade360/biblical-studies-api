@@ -5,13 +5,16 @@ import (
 	"os"
 
 	"github.com/gofiber/fiber/v2"
+	altcontroller "github.com/rAndrade360/biblical-studies-api/handlers/http/alternative"
 	qcontroller "github.com/rAndrade360/biblical-studies-api/handlers/http/question"
 	qgcontroller "github.com/rAndrade360/biblical-studies-api/handlers/http/questiongroup"
 	"github.com/rAndrade360/biblical-studies-api/internal/infra/database/sqlite"
+	alrepository "github.com/rAndrade360/biblical-studies-api/internal/repositories/alternative"
 	qrepository "github.com/rAndrade360/biblical-studies-api/internal/repositories/question"
 	qgrepository "github.com/rAndrade360/biblical-studies-api/internal/repositories/questiongroup"
 	"github.com/rAndrade360/biblical-studies-api/pkg/logger"
 	mwlogger "github.com/rAndrade360/biblical-studies-api/pkg/middlewares/logger"
+	altservice "github.com/rAndrade360/biblical-studies-api/services/alternative"
 	qservice "github.com/rAndrade360/biblical-studies-api/services/question"
 	qgservice "github.com/rAndrade360/biblical-studies-api/services/questiongroup"
 )
@@ -35,12 +38,15 @@ func main() {
 
 	qgrepo := qgrepository.NewQuestionGroupRepository(db)
 	qrepo := qrepository.NewQuestionRepository(db)
+	altrepo := alrepository.NewAlternativeRepository(db)
 
 	qgsvc := qgservice.NewQuestionGroupService(qgrepo)
 	qsvc := qservice.NewQuestionService(qrepo, qgsvc)
+	altsvc := altservice.NewAlternativeService(altrepo, qsvc)
 
 	qgctrl := qgcontroller.NewQuestionGroupController(qgsvc)
 	qctrl := qcontroller.NewQuestionController(qsvc)
+	altctrl := altcontroller.NewAlternativeController(altsvc)
 
 	qgrouter := app.Group("/questiongroup")
 	qgrouter.Post("/", qgctrl.Create)
@@ -51,6 +57,8 @@ func main() {
 	qrouter.Post("/", qctrl.Create)
 	qrouter.Get("/", qctrl.List)
 	qrouter.Get("/:id", qctrl.GetById)
+	qrouter.Get("/:id/alternatives", altctrl.GetByQuestionId)
+	qrouter.Post("/:id/alternatives", altctrl.Create)
 
 	log.Fatal(app.Listen(":" + PORT))
 }
