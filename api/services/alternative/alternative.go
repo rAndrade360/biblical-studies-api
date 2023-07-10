@@ -4,11 +4,11 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/rAndrade360/biblical-studies-api/internal/models"
-	repositories "github.com/rAndrade360/biblical-studies-api/internal/repositories/alternative"
+	"github.com/rAndrade360/biblical-studies-api/api/internal/models"
+	repositories "github.com/rAndrade360/biblical-studies-api/api/internal/repositories/alternative"
+	questionservice "github.com/rAndrade360/biblical-studies-api/api/services/question"
 	errors "github.com/rAndrade360/biblical-studies-api/pkg/error"
 	"github.com/rAndrade360/biblical-studies-api/pkg/logger"
-	questionservice "github.com/rAndrade360/biblical-studies-api/services/question"
 )
 
 type service struct {

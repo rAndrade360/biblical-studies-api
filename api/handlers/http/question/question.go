@@ -6,11 +6,11 @@ import (
 	stderr "errors"
 
 	"github.com/gofiber/fiber/v2"
-	dto "github.com/rAndrade360/biblical-studies-api/dto/question"
-	"github.com/rAndrade360/biblical-studies-api/internal/models"
+	dto "github.com/rAndrade360/biblical-studies-api/api/dto/question"
+	"github.com/rAndrade360/biblical-studies-api/api/internal/models"
+	"github.com/rAndrade360/biblical-studies-api/api/services/question"
 	errors "github.com/rAndrade360/biblical-studies-api/pkg/error"
 	"github.com/rAndrade360/biblical-studies-api/pkg/logger"
-	"github.com/rAndrade360/biblical-studies-api/services/question"
 )
 
 type controller struct {

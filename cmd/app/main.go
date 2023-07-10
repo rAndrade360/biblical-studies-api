@@ -5,18 +5,10 @@ import (
 	"os"
 
 	"github.com/gofiber/fiber/v2"
-	altcontroller "github.com/rAndrade360/biblical-studies-api/handlers/http/alternative"
-	qcontroller "github.com/rAndrade360/biblical-studies-api/handlers/http/question"
-	qgcontroller "github.com/rAndrade360/biblical-studies-api/handlers/http/questiongroup"
+	apicontrollers "github.com/rAndrade360/biblical-studies-api/api/handlers/http"
 	"github.com/rAndrade360/biblical-studies-api/internal/infra/database/sqlite"
-	alrepository "github.com/rAndrade360/biblical-studies-api/internal/repositories/alternative"
-	qrepository "github.com/rAndrade360/biblical-studies-api/internal/repositories/question"
-	qgrepository "github.com/rAndrade360/biblical-studies-api/internal/repositories/questiongroup"
 	"github.com/rAndrade360/biblical-studies-api/pkg/logger"
 	mwlogger "github.com/rAndrade360/biblical-studies-api/pkg/middlewares/logger"
-	altservice "github.com/rAndrade360/biblical-studies-api/services/alternative"
-	qservice "github.com/rAndrade360/biblical-studies-api/services/question"
-	qgservice "github.com/rAndrade360/biblical-studies-api/services/questiongroup"
 )
 
 var (
@@ -36,29 +28,19 @@ func main() {
 	app := fiber.New()
 	app.Use(mwlogger.Logger(logger.DEBUG))
 
-	qgrepo := qgrepository.NewQuestionGroupRepository(db)
-	qrepo := qrepository.NewQuestionRepository(db)
-	altrepo := alrepository.NewAlternativeRepository(db)
-
-	qgsvc := qgservice.NewQuestionGroupService(qgrepo)
-	qsvc := qservice.NewQuestionService(qrepo, qgsvc)
-	altsvc := altservice.NewAlternativeService(altrepo, qsvc)
-
-	qgctrl := qgcontroller.NewQuestionGroupController(qgsvc)
-	qctrl := qcontroller.NewQuestionController(qsvc)
-	altctrl := altcontroller.NewAlternativeController(altsvc)
+	apiCtrls := apicontrollers.Load(db)
 
 	qgrouter := app.Group("/questiongroup")
-	qgrouter.Post("/", qgctrl.Create)
-	qgrouter.Get("/", qgctrl.List)
-	qgrouter.Get("/:id", qgctrl.GetById)
+	qgrouter.Post("/", apiCtrls.QuestionGroupController.Create)
+	qgrouter.Get("/", apiCtrls.QuestionGroupController.List)
+	qgrouter.Get("/:id", apiCtrls.QuestionGroupController.GetById)
 
 	qrouter := app.Group("/question")
-	qrouter.Post("/", qctrl.Create)
-	qrouter.Get("/", qctrl.List)
-	qrouter.Get("/:id", qctrl.GetById)
-	qrouter.Get("/:id/alternatives", altctrl.GetByQuestionId)
-	qrouter.Post("/:id/alternatives", altctrl.Create)
+	qrouter.Post("/", apiCtrls.QuestionController.Create)
+	qrouter.Get("/", apiCtrls.QuestionController.List)
+	qrouter.Get("/:id", apiCtrls.QuestionController.GetById)
+	qrouter.Get("/:id/alternatives", apiCtrls.AlternativeController.GetByQuestionId)
+	qrouter.Post("/:id/alternatives", apiCtrls.QuestionGroupController.Create)
 
 	log.Fatal(app.Listen(":" + PORT))
 }

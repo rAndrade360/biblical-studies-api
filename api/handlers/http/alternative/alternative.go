@@ -1,29 +1,30 @@
-package questiongroup
+package alternative
 
 import (
 	"context"
+
 	stderr "errors"
 
 	"github.com/gofiber/fiber/v2"
-	dto "github.com/rAndrade360/biblical-studies-api/dto/questiongroup"
-	"github.com/rAndrade360/biblical-studies-api/internal/models"
+	dto "github.com/rAndrade360/biblical-studies-api/api/dto/alternative"
+	"github.com/rAndrade360/biblical-studies-api/api/internal/models"
+	"github.com/rAndrade360/biblical-studies-api/api/services/alternative"
 	errors "github.com/rAndrade360/biblical-studies-api/pkg/error"
-
 	"github.com/rAndrade360/biblical-studies-api/pkg/logger"
-	"github.com/rAndrade360/biblical-studies-api/services/questiongroup"
 )
 
 type controller struct {
-	service questiongroup.QuestionGroupService
+	service alternative.AlternativeService
 }
 
-type QuestionGroupController interface {
+type AlternativeController interface {
 	Create(ctx *fiber.Ctx) error
 	List(ctx *fiber.Ctx) error
 	GetById(ctx *fiber.Ctx) error
+	GetByQuestionId(ctx *fiber.Ctx) error
 }
 
-func NewQuestionGroupController(svc questiongroup.QuestionGroupService) QuestionGroupController {
+func NewAlternativeController(svc alternative.AlternativeService) AlternativeController {
 	return &controller{
 		service: svc,
 	}
@@ -34,21 +35,18 @@ func (c *controller) Create(ctx *fiber.Ctx) error {
 	log := ctx.Locals(logger.LogKey).(logger.Logger)
 	contxt := context.WithValue(context.Background(), logger.LogKey, log)
 
-	var in dto.QuestionGroupHttpCreate
+	var in dto.AlternativeHttpRequest
 	err := ctx.BodyParser(&in)
 	if err != nil {
 		log.Error(err.Error())
 		return err
 	}
 
-	qg := models.QuestionGroup{
-		Name:        in.Name,
-		Description: in.Description,
-		ImageUrl:    in.ImageUrl,
-		SortNumber:  in.SortNumber,
-	}
+	questionId := ctx.Params("id")
 
-	err = c.service.Create(contxt, &qg)
+	a := models.NewAlternative(questionId, in.Value, in.IsCorret)
+
+	err = c.service.Create(contxt, &a)
 	if err != nil {
 		log.Error(err.Error())
 		if stderr.Is(err, errors.INVALIDINPUT) {
@@ -57,7 +55,11 @@ func (c *controller) Create(ctx *fiber.Ctx) error {
 		return ctx.Status(500).Send([]byte(errors.ITERNAL_SERVER_ERROR_HTTP.Error()))
 	}
 
-	res := dto.QuestionGroupHttpCreateResponse(qg)
+	res := dto.AlternativeHttpResponse{
+		ID:         a.ID,
+		Value:      a.Value,
+		QuestionID: a.QuestionID,
+	}
 
 	log.Info("response", res)
 
@@ -71,7 +73,7 @@ func (c *controller) GetById(ctx *fiber.Ctx) error {
 
 	id := ctx.Params("id")
 
-	qg, err := c.service.GetById(contxt, id)
+	a, err := c.service.GetById(contxt, id)
 	if err != nil {
 		log.Error(err.Error())
 		if stderr.Is(err, errors.INVALIDINPUT) {
@@ -80,7 +82,42 @@ func (c *controller) GetById(ctx *fiber.Ctx) error {
 		return ctx.Status(500).Send([]byte(errors.ITERNAL_SERVER_ERROR_HTTP.Error()))
 	}
 
-	res := dto.QuestionGroupHttpCreateResponse(*qg)
+	res := dto.AlternativeHttpResponse{
+		ID:         a.ID,
+		Value:      a.Value,
+		QuestionID: a.QuestionID,
+	}
+
+	log.Info("response", res)
+
+	return ctx.Status(200).JSON(res)
+}
+
+func (c *controller) GetByQuestionId(ctx *fiber.Ctx) error {
+	ctx.Set("Content-Type", "application/json")
+	log := ctx.Locals(logger.LogKey).(logger.Logger)
+	contxt := context.WithValue(context.Background(), logger.LogKey, log)
+
+	id := ctx.Params("id")
+
+	as, err := c.service.GetByQuestionId(contxt, id)
+	if err != nil {
+		log.Error(err.Error())
+		if stderr.Is(err, errors.INVALIDINPUT) {
+			return ctx.Status(400).Send([]byte(errors.BAD_REQUEST_HTTP.Error()))
+		}
+		return ctx.Status(500).Send([]byte(errors.ITERNAL_SERVER_ERROR_HTTP.Error()))
+	}
+
+	var res []dto.AlternativeHttpResponse
+
+	for i := range as {
+		res = append(res, dto.AlternativeHttpResponse{
+			ID:         as[i].ID,
+			Value:      as[i].Value,
+			QuestionID: as[i].QuestionID,
+		})
+	}
 
 	log.Info("response", res)
 
@@ -92,7 +129,7 @@ func (c *controller) List(ctx *fiber.Ctx) error {
 	log := ctx.Locals(logger.LogKey).(logger.Logger)
 	contxt := context.WithValue(context.Background(), logger.LogKey, log)
 
-	qgs, err := c.service.List(contxt)
+	as, err := c.service.List(contxt)
 	if err != nil {
 		log.Error(err.Error())
 		if stderr.Is(err, errors.INVALIDINPUT) {
@@ -101,10 +138,14 @@ func (c *controller) List(ctx *fiber.Ctx) error {
 		return ctx.Status(500).Send([]byte(errors.ITERNAL_SERVER_ERROR_HTTP.Error()))
 	}
 
-	var res []dto.QuestionGroupHttpCreateResponse
+	var res []dto.AlternativeHttpResponse
 
-	for i := range qgs {
-		res = append(res, dto.QuestionGroupHttpCreateResponse(qgs[i]))
+	for i := range as {
+		res = append(res, dto.AlternativeHttpResponse{
+			ID:         as[i].ID,
+			Value:      as[i].Value,
+			QuestionID: as[i].QuestionID,
+		})
 	}
 
 	log.Info("response", res)
