@@ -4,26 +4,27 @@ import (
 	"log"
 	"os"
 
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/gofiber/fiber/v2"
-	altcontroller "github.com/rAndrade360/biblical-studies-api/handlers/http/alternative"
-	qcontroller "github.com/rAndrade360/biblical-studies-api/handlers/http/question"
-	qgcontroller "github.com/rAndrade360/biblical-studies-api/handlers/http/questiongroup"
+	"github.com/joho/godotenv"
+	apicontrollers "github.com/rAndrade360/biblical-studies-api/api/handlers/http"
+	botcontroller "github.com/rAndrade360/biblical-studies-api/bot/handlers/http"
 	"github.com/rAndrade360/biblical-studies-api/internal/infra/database/sqlite"
-	alrepository "github.com/rAndrade360/biblical-studies-api/internal/repositories/alternative"
-	qrepository "github.com/rAndrade360/biblical-studies-api/internal/repositories/question"
-	qgrepository "github.com/rAndrade360/biblical-studies-api/internal/repositories/questiongroup"
 	"github.com/rAndrade360/biblical-studies-api/pkg/logger"
 	mwlogger "github.com/rAndrade360/biblical-studies-api/pkg/middlewares/logger"
-	altservice "github.com/rAndrade360/biblical-studies-api/services/alternative"
-	qservice "github.com/rAndrade360/biblical-studies-api/services/question"
-	qgservice "github.com/rAndrade360/biblical-studies-api/services/questiongroup"
 )
 
-var (
-	PORT = os.Getenv("PORT")
-)
+func init() {
+	err := godotenv.Load("./.env")
+	if err != nil {
+		log.Fatal(err)
+	}
+}
 
 func main() {
+	TOKEN := os.Getenv("TOKEN")
+	PORT := os.Getenv("PORT")
+
 	if len(PORT) == 0 {
 		PORT = "8080"
 	}
@@ -33,32 +34,36 @@ func main() {
 		log.Fatal("Err to connect db: ", err.Error())
 	}
 
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		DisableStartupMessage: true,
+	})
 	app.Use(mwlogger.Logger(logger.DEBUG))
 
-	qgrepo := qgrepository.NewQuestionGroupRepository(db)
-	qrepo := qrepository.NewQuestionRepository(db)
-	altrepo := alrepository.NewAlternativeRepository(db)
+	bot, err := tgbotapi.NewBotAPI(TOKEN)
+	if err != nil {
+		log.Fatal("Err connect to bot: ", err.Error())
+	}
 
-	qgsvc := qgservice.NewQuestionGroupService(qgrepo)
-	qsvc := qservice.NewQuestionService(qrepo, qgsvc)
-	altsvc := altservice.NewAlternativeService(altrepo, qsvc)
+	apiCtrls := apicontrollers.Load(db)
+	botCtrls := botcontroller.Load(bot)
 
-	qgctrl := qgcontroller.NewQuestionGroupController(qgsvc)
-	qctrl := qcontroller.NewQuestionController(qsvc)
-	altctrl := altcontroller.NewAlternativeController(altsvc)
+	app.Post("/bot", botCtrls.BotController.Handle)
+
+	app.Get("/health", func(c *fiber.Ctx) error {
+		return c.Status(200).SendString(`{"message": "health is good"}`)
+	})
 
 	qgrouter := app.Group("/questiongroup")
-	qgrouter.Post("/", qgctrl.Create)
-	qgrouter.Get("/", qgctrl.List)
-	qgrouter.Get("/:id", qgctrl.GetById)
+	qgrouter.Post("/", apiCtrls.QuestionGroupController.Create)
+	qgrouter.Get("/", apiCtrls.QuestionGroupController.List)
+	qgrouter.Get("/:id", apiCtrls.QuestionGroupController.GetById)
 
 	qrouter := app.Group("/question")
-	qrouter.Post("/", qctrl.Create)
-	qrouter.Get("/", qctrl.List)
-	qrouter.Get("/:id", qctrl.GetById)
-	qrouter.Get("/:id/alternatives", altctrl.GetByQuestionId)
-	qrouter.Post("/:id/alternatives", altctrl.Create)
+	qrouter.Post("/", apiCtrls.QuestionController.Create)
+	qrouter.Get("/", apiCtrls.QuestionController.List)
+	qrouter.Get("/:id", apiCtrls.QuestionController.GetById)
+	qrouter.Get("/:id/alternatives", apiCtrls.AlternativeController.GetByQuestionId)
+	qrouter.Post("/:id/alternatives", apiCtrls.QuestionGroupController.Create)
 
 	log.Fatal(app.Listen(":" + PORT))
 }

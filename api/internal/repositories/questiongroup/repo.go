@@ -3,7 +3,7 @@ package questiongroup
 import (
 	"database/sql"
 
-	"github.com/rAndrade360/biblical-studies-api/internal/models"
+	"github.com/rAndrade360/biblical-studies-api/api/internal/models"
 )
 
 type repo struct {

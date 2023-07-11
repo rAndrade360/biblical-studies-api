@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/rAndrade360/biblical-studies-api/internal/models"
-	repositories "github.com/rAndrade360/biblical-studies-api/internal/repositories/questiongroup"
+	"github.com/rAndrade360/biblical-studies-api/api/internal/models"
+	repositories "github.com/rAndrade360/biblical-studies-api/api/internal/repositories/questiongroup"
 	errors "github.com/rAndrade360/biblical-studies-api/pkg/error"
 	"github.com/rAndrade360/biblical-studies-api/pkg/logger"
 )
