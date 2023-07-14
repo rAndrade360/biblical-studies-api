@@ -41,14 +41,12 @@ func (c *controller) Create(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	qg := models.QuestionGroup{
-		Name:        in.Name,
-		Description: in.Description,
-		ImageUrl:    in.ImageUrl,
-		SortNumber:  in.SortNumber,
+	qg, err := models.NewQuestionGroup(in.Name, in.Description, in.ImageUrl, in.SortNumber)
+	if err != nil {
+		return ctx.Status(400).Send([]byte(errors.BAD_REQUEST_HTTP.Error()))
 	}
 
-	err = c.service.Create(contxt, &qg)
+	err = c.service.Create(contxt, qg)
 	if err != nil {
 		log.Error(err.Error())
 		if stderr.Is(err, errors.INVALIDINPUT) {
@@ -57,7 +55,7 @@ func (c *controller) Create(ctx *fiber.Ctx) error {
 		return ctx.Status(500).Send([]byte(errors.ITERNAL_SERVER_ERROR_HTTP.Error()))
 	}
 
-	res := dto.QuestionGroupHttpCreateResponse(qg)
+	res := dto.QuestionGroupHttpCreateResponse(*qg)
 
 	log.Info("response", res)
 

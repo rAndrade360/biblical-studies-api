@@ -2,7 +2,6 @@ package questiongroup
 
 import (
 	"context"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/rAndrade360/biblical-studies-api/api/internal/models"
@@ -31,10 +30,6 @@ func (s *service) Create(ctx context.Context, qg *models.QuestionGroup) error {
 	log := logger.GetLoggerCtx(ctx)
 
 	log.Info("Creating QuestionGroup", qg)
-
-	qg.ID = uuid.New().String()
-	qg.CreatedAt = time.Now()
-	qg.UpdatedAt = time.Now()
 
 	return s.repo.Create(qg)
 }
