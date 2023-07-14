@@ -44,9 +44,12 @@ func (c *controller) Create(ctx *fiber.Ctx) error {
 
 	questionId := ctx.Params("id")
 
-	a := models.NewAlternative(questionId, in.Value, in.IsCorret)
+	a, err := models.NewAlternative(questionId, in.Value, in.IsCorret)
+	if err != nil {
+		return ctx.Status(400).Send([]byte(errors.BAD_REQUEST_HTTP.Error()))
+	}
 
-	err = c.service.Create(contxt, &a)
+	err = c.service.Create(contxt, a)
 	if err != nil {
 		log.Error(err.Error())
 		if stderr.Is(err, errors.INVALIDINPUT) {
